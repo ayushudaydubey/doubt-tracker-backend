@@ -1,0 +1,400 @@
+{
+	"info": {
+		"_postman_id": "d03249d0-fad4-4f2e-9df8-9a46a0f264ee",
+		"name": "Doubt Tracker API Collection",
+		"description": "All API endpoints for the Doubt Tracker App (Students and Mentors)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "41303060",
+		"_collection_link": "https://doubts-team.postman.co/workspace/eb205dbf-3662-451f-877b-e985082a8927/collection/41303060-d03249d0-fad4-4f2e-9df8-9a46a0f264ee?action=share&source=collection_link&creator=41303060"
+	},
+	"item": [
+		{
+			"name": "Register Student",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"student@example.com\",\n  \"password\": \"123456\",\n  \"mobile\": \"1234567890\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/register-student",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"register-student"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Student Login",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"student@example.com\",\n  \"password\": \"123456\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/student-login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"student-login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Mentor Login",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"mentor@example.com\",\n  \"password\": \"123456\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/login-mentor",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"login-mentor"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Register Mentor (admin)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{admin_token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"Jane Smith\",\n  \"email\": \"mentor@example.com\",\n  \"password\": \"123456\",\n  \"mobile\": \"9876543210\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/register-mentor",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"register-mentor"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Doubt (student)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{student_token}}"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "title",
+							"value": "Issue with React form",
+							"type": "text"
+						},
+						{
+							"key": "description",
+							"value": "Form not submitting.",
+							"type": "text"
+						},
+						{
+							"key": "image",
+							"value": "",
+							"type": "file"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://doubt-tracker-backend.onrender.com/doubts",
+					"protocol": "https",
+					"host": [
+						"doubt-tracker-backend",
+						"onrender",
+						"com"
+					],
+					"path": [
+						"doubts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get My Doubts (student)",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{student_token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/doubts",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"doubts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Single Doubt",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/doubts/{{doubt_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"doubts",
+						"{{doubt_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Doubt (student)",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{student_token}}"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "title",
+							"value": "Updated title",
+							"type": "text"
+						},
+						{
+							"key": "description",
+							"value": "Updated description",
+							"type": "text"
+						},
+						{
+							"key": "image",
+							"value": "",
+							"type": "file"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}/doubts/{{doubt_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"doubts",
+						"{{doubt_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Doubt (student)",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{student_token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/doubts/{{doubt_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"doubts",
+						"{{doubt_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Reply to Doubt (mentor)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{mentor_token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"response\": \"Here is the solution.\" \n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/doubts/{{doubt_id}}/reply",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"doubts",
+						"{{doubt_id}}",
+						"reply"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Doubts (mentor)",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{mentor_token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/all-doubts",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"all-doubts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "https://doubt-tracker-backend.onrender.com/login-student",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful POST request\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \n//   \"name\": \"uday\",\n  \"email\": \"uday@gamil.com\",\n//   \"mobile\" : \"6266997825\",\n  \"password\": \"123456\"\n\n \n\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://doubt-tracker-backend.onrender.com/login-student",
+					"protocol": "https",
+					"host": [
+						"doubt-tracker-backend",
+						"onrender",
+						"com"
+					],
+					"path": [
+						"login-student"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000"
+		},
+		{
+			"key": "student_token",
+			"value": ""
+		},
+		{
+			"key": "mentor_token",
+			"value": ""
+		},
+		{
+			"key": "admin_token",
+			"value": ""
+		},
+		{
+			"key": "doubt_id",
+			"value": ""
+		},
+		{
+			"key": "token",
+			"value": ""
+		}
+	]
+}
