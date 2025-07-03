@@ -41,16 +41,15 @@ export const registerMentorController = async (req, res) => {
   const { name, email, password, mobile } = req.body;
 
   try {
-    // Check if user already exists
+ 
     const existing = await userModel.findOne({ email });
     if (existing) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Hash password
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create new mentor
     const user = await userModel.create({
       name,
       email,

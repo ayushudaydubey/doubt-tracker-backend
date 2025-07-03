@@ -77,7 +77,7 @@ export const replyToDoubtController = async (req, res) => {
     )
       .populate("student", "name email")
       .populate("mentor", "name email mobile description")
-      .populate("response.mentor", "name email mobile"); // ✅ This line is important
+      .populate("response.mentor", "name email mobile"); 
 
     if (!updatedDoubt) {
       return res.status(404).json({ message: "Doubt not found" });

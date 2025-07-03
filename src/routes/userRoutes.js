@@ -25,7 +25,6 @@ import permit from '../middleware/role.js';
 
 const router = express.Router();
 
-// ========== AUTH ROUTES ==========
 
 // Register as Mentor
 // Only an admin can register a mentor
@@ -51,7 +50,6 @@ router.post(
 router.post('/student-login', loginController);
 
 
-// ========== DOUBT ROUTES ==========
 
 // Create a doubt (student)
 router.post('/doubts', protect, upload.single("image"), createDoubtController);
