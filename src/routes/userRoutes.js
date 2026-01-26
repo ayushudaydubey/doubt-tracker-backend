@@ -11,14 +11,13 @@ import {
 import {
   createDoubtController,
   deleteDoubtController,
-  getAllDoubtsController,
-  getDoubtsController,
-  getShowOneDoubtsController,
   getStudentDoubtsController,
-  replyToDoubtController,
-  updateDoubtController
+  getSingleDoubtController,
+  updateDoubtController,
+  getAllDoubtsForMentor,
+  addMessageController,
+  resolveDoubtController,
 } from '../controllers/doubtController.js';
-import { addMessageController, resolveDoubtController } from '../controllers/doubtController.js';
 
 import upload from '../middleware/upload.js';
 import protect from '../middleware/auth.js';
@@ -59,10 +58,10 @@ router.post('/doubts', protect, upload.single("image"), createDoubtController);
 router.get('/doubts', protect, getStudentDoubtsController);
 
 // Get full detail of a specific doubt
-router.get('/doubts/:id', protect, getShowOneDoubtsController);
+router.get('/doubts/:id', protect, getSingleDoubtController);
 
-// Mentor reply to a doubt
-router.post('/doubts/:id/reply', protect, permit('mentor'), replyToDoubtController);
+// Mentor reply to a doubt (uses messages endpoint implementation)
+router.post('/doubts/:id/reply', protect, permit('mentor'), upload.single('image'), addMessageController);
 
 // Add a chat message to a doubt (student or mentor). Optional image upload.
 router.post('/doubts/:id/messages', protect, upload.single('image'), addMessageController);
@@ -77,7 +76,7 @@ router.delete('/doubts/:id', protect, deleteDoubtController);
 
 
 // Get all doubts for mentors
-router.get('/all-doubts', protect, permit('mentor'), getAllDoubtsController);
+router.get('/all-doubts', protect, permit('mentor'), getAllDoubtsForMentor);
 
 
 
