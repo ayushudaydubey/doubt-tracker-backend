@@ -18,6 +18,7 @@ import {
   replyToDoubtController,
   updateDoubtController
 } from '../controllers/doubtController.js';
+import { addMessageController, resolveDoubtController } from '../controllers/doubtController.js';
 
 import upload from '../middleware/upload.js';
 import protect from '../middleware/auth.js';
@@ -62,6 +63,12 @@ router.get('/doubts/:id', protect, getShowOneDoubtsController);
 
 // Mentor reply to a doubt
 router.post('/doubts/:id/reply', protect, permit('mentor'), replyToDoubtController);
+
+// Add a chat message to a doubt (student or mentor). Optional image upload.
+router.post('/doubts/:id/messages', protect, upload.single('image'), addMessageController);
+
+// Resolve a doubt (student or mentor can mark resolved)
+router.post('/doubts/:id/resolve', protect, resolveDoubtController);
 
 // Update doubt (only student can do this)
 router.put('/doubts/:id', protect, upload.single("image"), updateDoubtController);

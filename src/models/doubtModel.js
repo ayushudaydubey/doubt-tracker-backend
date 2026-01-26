@@ -35,6 +35,26 @@ const doubtSchema = new mongoose.Schema(
         default: null,
       },
     },
+    // Chat messages between student and mentor
+    messages: [
+      {
+        sender: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+        role: { type: String, enum: ["student", "mentor"], required: true },
+        text: { type: String, default: "" },
+        image: { type: String, default: "" },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
+    resolvedAt: { type: Date },
+    resolvedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
   },
   {
     timestamps: true,

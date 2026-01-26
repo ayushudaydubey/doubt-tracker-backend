@@ -1,174 +1,210 @@
-import doubtModel from "../models/doubtModel.js";
-import imagekit from "../utils/imageKit.js";
+import doubtModel from "../models/doubtModel.js"
+import imagekit from "../utils/imageKit.js"
 
-// 1. Create Doubt
 export const createDoubtController = async (req, res) => {
-  const { title, description } = req.body;
-  let imageUrl = null;
-
+  const { title, description } = req.body
+  let imageUrl = null
   try {
     if (req.file) {
+      const base64 = req.file.buffer.toString("base64")
+      const fileData = `data:${req.file.mimetype};base64,${base64}`
       const uploadResponse = await imagekit.upload({
-        file: req.file.buffer,
+        file: fileData,
         fileName: req.file.originalname,
-      });
-      imageUrl = uploadResponse.url;
+      })
+      imageUrl = uploadResponse.url
     }
-
     const doubt = await doubtModel.create({
       title,
       description,
       image: imageUrl,
       student: req.user._id,
-    });
-
-    res.status(201).json(doubt);
-  } catch (err) {
-    console.error("Error creating doubt:", err);
-    res.status(500).json({ message: "Failed to create doubt" });
+    })
+    res.status(201).json(doubt)
+  } catch {
+    res.status(500).json({ message: "Failed to create doubt" })
   }
-};
+}
 
-// 2. Get All Doubts of a Student
 export const getDoubtsController = async (req, res) => {
   try {
-    const doubts = await doubtModel.find({ student: req.user._id }).sort({ createdAt: -1 });
-    res.json(doubts);
-  } catch (err) {
-    res.status(500).json({ message: "Failed to fetch doubts" });
+    const doubts = await doubtModel
+      .find({ student: req.user._id })
+      .sort({ createdAt: -1 })
+    res.json(doubts)
+  } catch {
+    res.status(500).json({ message: "Failed to fetch doubts" })
   }
-};
+}
 
-// 3. Get Single Doubt Details
 export const getShowOneDoubtsController = async (req, res) => {
   try {
-    const doubt = await doubtModel.findById(req.params.id)
+    const doubt = await doubtModel
+      .findById(req.params.id)
       .populate("student", "name email")
       .populate("mentor", "name email mobile description")
-      .populate("response.mentor", "name email mobile"); 
-    if (!doubt) {
-      return res.status(404).json({ message: "Doubt not found" });
-    }
-
-    res.status(200).json(doubt);
-  } catch (err) {
-    console.error("Error loading doubt:", err);
-    res.status(500).json({ message: "Failed to load doubt" });
+      .populate("response.mentor", "name email mobile")
+      .populate("messages.sender", "name email")
+    if (!doubt) return res.status(404).json({ message: "Doubt not found" })
+    res.json(doubt)
+  } catch {
+    res.status(500).json({ message: "Failed to load doubt" })
   }
-};
+}
 
-// 4. Mentor Replies to Doubt
 export const replyToDoubtController = async (req, res) => {
   try {
-    const { response } = req.body;
-
-    const updatedDoubt = await doubtModel.findByIdAndUpdate(
-      req.params.id,
-      {
-        response: {
-          text: response,
-          repliedAt: new Date(),
+    const { response } = req.body
+    const updatedDoubt = await doubtModel
+      .findByIdAndUpdate(
+        req.params.id,
+        {
+          response: {
+            text: response,
+            repliedAt: new Date(),
+            mentor: req.user._id,
+          },
           mentor: req.user._id,
+          status: "resolved",
         },
-        mentor: req.user._id,
-        status: "resolved",
-      },
-      { new: true }
-    )
+        { new: true }
+      )
       .populate("student", "name email")
       .populate("mentor", "name email mobile description")
-      .populate("response.mentor", "name email mobile"); 
+      .populate("response.mentor", "name email mobile")
+    if (!updatedDoubt) return res.status(404).json({ message: "Doubt not found" })
+    res.json(updatedDoubt)
+  } catch {
+    res.status(500).json({ message: "Failed to submit response" })
+  }
+}
 
-    if (!updatedDoubt) {
-      return res.status(404).json({ message: "Doubt not found" });
+export const addMessageController = async (req, res) => {
+  try {
+    const doubt = await doubtModel.findById(req.params.id)
+    if (!doubt) return res.status(404).json({ message: "Doubt not found" })
+
+    if (
+      doubt.student.toString() !== req.user._id.toString() &&
+      req.user.role !== "mentor"
+    ) {
+      return res.status(403).json({ message: "Not authorized" })
     }
 
-    res.status(200).json(updatedDoubt);
-  } catch (err) {
-    console.error("Reply failed:", err);
-    res.status(500).json({ message: "Failed to submit response" });
+    let image = ""
+    if (req.file) {
+      const file = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`
+      const upload = await imagekit.upload({
+        file,
+        fileName: req.file.originalname,
+      })
+      image = upload.url
+    }
+
+    doubt.messages.push({
+      sender: req.user._id,
+      role: req.user.role,
+      text: req.body.text || "",
+      image,
+    })
+
+    if (req.user.role === "mentor") doubt.mentor = req.user._id
+    if (doubt.status === "unresolved") doubt.status = "in-progress"
+
+    await doubt.save()
+
+    res.json(doubt)
+  } catch {
+    res.status(500).json({ message: "Failed to add message" })
   }
-};
+}
 
+export const resolveDoubtController = async (req, res) => {
+  try {
+    const doubt = await doubtModel.findById(req.params.id)
+    if (!doubt) return res.status(404).json({ message: "Doubt not found" })
 
+    if (
+      doubt.student.toString() !== req.user._id.toString() &&
+      req.user.role !== "mentor"
+    ) {
+      return res.status(403).json({ message: "Not authorized" })
+    }
 
-// 5. Get All Doubts for a Student (with Mentor Info)
+    doubt.status = "resolved"
+    doubt.resolvedAt = new Date()
+    doubt.resolvedBy = req.user._id
+    if (req.user.role === "mentor") doubt.mentor = req.user._id
+
+    await doubt.save()
+
+    res.json(doubt)
+  } catch {
+    res.status(500).json({ message: "Failed to resolve doubt" })
+  }
+}
+
 export const getStudentDoubtsController = async (req, res) => {
   try {
     const doubts = await doubtModel
       .find({ student: req.user._id })
       .populate("mentor", "name email")
-      .sort({ createdAt: -1 });
-
-    res.json(doubts);
-  } catch (err) {
-    res.status(500).json({ message: "Failed to fetch student doubts" });
+      .sort({ createdAt: -1 })
+    res.json(doubts)
+  } catch {
+    res.status(500).json({ message: "Failed to fetch student doubts" })
   }
-};
+}
 
-// 6. Update a Doubt by Student
 export const updateDoubtController = async (req, res) => {
   try {
-    const { title, description } = req.body;
-    let updatedFields = { title, description };
-
-    // Handle image if sent
+    const { title, description } = req.body
+    let updatedFields = { title, description }
     if (req.file) {
+      const base64 = req.file.buffer.toString("base64")
+      const fileData = `data:${req.file.mimetype};base64,${base64}`
       const uploadResponse = await imagekit.upload({
-        file: req.file.buffer,
+        file: fileData,
         fileName: req.file.originalname,
-      });
-      updatedFields.image = uploadResponse.url;
+      })
+      updatedFields.image = uploadResponse.url
     }
-
     const doubt = await doubtModel.findOneAndUpdate(
       { _id: req.params.id, student: req.user._id },
       updatedFields,
       { new: true }
-    );
-
-    if (!doubt) {
-      return res.status(404).json({ message: "Doubt not found or unauthorized" });
-    }
-
-    res.json(doubt);
-  } catch (err) {
-    console.error("Update failed:", err);
-    res.status(500).json({ message: "Failed to update doubt" });
+    )
+    if (!doubt)
+      return res.status(404).json({ message: "Doubt not found or unauthorized" })
+    res.json(doubt)
+  } catch {
+    res.status(500).json({ message: "Failed to update doubt" })
   }
-};
+}
 
-// 7. Get All Doubts for Mentor Dashboard
 export const getAllDoubtsController = async (req, res) => {
   try {
     const doubts = await doubtModel
       .find()
       .populate("student", "name email")
       .populate("mentor", "name email")
-      .sort({ createdAt: -1 });
-
-    res.json(doubts);
-  } catch (err) {
-    res.status(500).json({ message: "Failed to fetch all doubts" });
+      .sort({ createdAt: -1 })
+    res.json(doubts)
+  } catch {
+    res.status(500).json({ message: "Failed to fetch all doubts" })
   }
-};
+}
 
-// 8. Delete a doubt by student
 export const deleteDoubtController = async (req, res) => {
   try {
     const doubt = await doubtModel.findOneAndDelete({
       _id: req.params.id,
       student: req.user._id,
-    });
-
-    if (!doubt) {
-      return res.status(404).json({ message: "Doubt not found or unauthorized" });
-    }
-
-    res.json({ message: "Doubt deleted successfully" });
-  } catch (err) {
-    console.error("Delete failed:", err);
-    res.status(500).json({ message: "Failed to delete doubt" });
+    })
+    if (!doubt)
+      return res.status(404).json({ message: "Doubt not found or unauthorized" })
+    res.json({ message: "Doubt deleted successfully" })
+  } catch {
+    res.status(500).json({ message: "Failed to delete doubt" })
   }
-};
-
+}
