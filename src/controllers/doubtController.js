@@ -31,12 +31,32 @@ export const createDoubtController = async (req, res) => {
 
 export const getStudentDoubtsController = async (req, res) => {
   try {
+    // Query params: status (unresolved|in-progress|resolved), page, limit
+    const { status, page = 1, limit = 10 } = req.query
+
+    const filter = { student: req.user._id }
+    if (status) filter.status = status
+
+    const pageNum = Math.max(1, parseInt(page, 10) || 1)
+    const perPage = Math.max(1, parseInt(limit, 10) || 10)
+
+    const total = await doubtModel.countDocuments(filter)
     const doubts = await doubtModel
-      .find({ student: req.user._id })
+      .find(filter)
       .populate("mentor", "name email")
       .sort({ createdAt: -1 })
+      .skip((pageNum - 1) * perPage)
+      .limit(perPage)
 
-    res.json(doubts)
+    res.json({
+      data: doubts,
+      meta: {
+        total,
+        page: pageNum,
+        limit: perPage,
+        totalPages: Math.ceil(total / perPage) || 1,
+      },
+    })
   } catch {
     res.status(500).json({ message: "Failed to fetch doubts" })
   }
@@ -164,13 +184,34 @@ export const deleteDoubtController = async (req, res) => {
 
 export const getAllDoubtsForMentor = async (req, res) => {
   try {
+    // Query params: status, page, limit, assigned=mine
+    const { status, page = 1, limit = 10, assigned } = req.query
+
+    const filter = {}
+    if (status) filter.status = status
+    if (assigned === 'mine') filter.mentor = req.user._id
+
+    const pageNum = Math.max(1, parseInt(page, 10) || 1)
+    const perPage = Math.max(1, parseInt(limit, 10) || 10)
+
+    const total = await doubtModel.countDocuments(filter)
     const doubts = await doubtModel
-      .find()
+      .find(filter)
       .populate("student", "name email")
       .populate("mentor", "name email")
       .sort({ createdAt: -1 })
+      .skip((pageNum - 1) * perPage)
+      .limit(perPage)
 
-    res.json(doubts)
+    res.json({
+      data: doubts,
+      meta: {
+        total,
+        page: pageNum,
+        limit: perPage,
+        totalPages: Math.ceil(total / perPage) || 1,
+      },
+    })
   } catch {
     res.status(500).json({ message: "Failed to fetch doubts" })
   }
